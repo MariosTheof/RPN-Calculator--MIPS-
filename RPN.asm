@@ -19,7 +19,7 @@
 	syscall
 	
 	
-   nextChar:
+   
    	# Get next char
    	lb $t1, ($t0) #load a character (byte) in $t1 $t1 = ch
    	bne $t1, 32 , notSpace
@@ -28,9 +28,24 @@
    	addi $t2, $zero ,0 # number($t2) =0
    	
    while:
-   	bgt $t1, 48, exitWhile
+   	bgt $t1, 48, exitWhile #Conditions
    	bgt $t1, 57, exitWhile
-   	$t2 
+   	
+   	
+   	mul $t2, $t2, 10 # number = 10*number + (ch-48)
+   	sub $t1, $t1, -48
+   	add $t2, $t2, $t1
+   	
+    nextChar:
+   	# Get next char
+   	lb $t1, ($t0) #load a character (byte) in $t1 $t1 = ch
+   	bne $t1, 32 , notSpace
+   	addi $t0, $t0, 1 # input ++ so it points to the next character
+   	
+   	j while
+   	
+   exitWhile:
+   	
    	
    	
    	
