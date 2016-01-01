@@ -1,8 +1,12 @@
 .data
+	stack: .space 80 #array will hold 20 integers
 	prompt: .asciiz "Postfix (input) : "
 	error: .asciiz "Too many tokens"
 	error2: .asciiz "Invalid postfix"
 	error3: .asciiz "Divide by zero"
+	result: .asciiz "Postfix Evaluation (output): "
+	errorPostfix: .asciiz "Invalid Postfix \n Stack: "
+	newLine: .asciiz "\n"
 .text
 	#final static int MAX = 20
 	addi $s0, $zero, 20 #s0 = MAX
@@ -22,7 +26,7 @@
 	move $t0, $v0
 	
 	#Display input
-	li $v0, 4
+	li $v0, 1
 	move $a0, $t0
 	syscall
 	
@@ -32,7 +36,7 @@
    	lb $t1, ($t0) #load a character (byte) in $t1 $t1 = ch
    	
    	bne $t1, 32 , notSpace
-   	
+   	j do_while
    	
    notSpace:
    	addi $t2, $zero ,0 # number($t2) =0
@@ -77,12 +81,69 @@
    	#(ch != '=')
    	bne $t1, 61, push
    	
+   	beq $t1, 61, exit_doWhile
    	j do_while
    	
 
    
    	
    	
+   exit_doWhile:
+   	beq $s1, 1, printResult
+   	
+   	#Print else: " Invalid postfix" and "Stack: "
+   	li $v0, 4
+   	la $a0, errorPostfix
+   	syscall
+   	
+   	addi $t7, $zero, 0
+   	b printStackLoop
+   
+   exitProgram:
+   	li $v0,10
+   	syscall
+   
+   printStackLoop:
+   	bgt $s2, 19, exitProgram
+   	
+   	addi $s2, $s2, 1
+   	
+   	li $v0, 4
+   	la $a0, newLine
+   	syscall
+   	
+   	lw $t6, stack($t7) #Retrieves stack elements
+		addi $t7, $t7, 4 #Gets ready to retrieve the next stack element
+	# Print Result
+	li $v0, 1
+   	addi $a0, $t6, 0
+   	syscall
+	
+	j printStackLoop
+	
+	
+   printResult:
+   	#Print: Postfix Evaluation (output):
+   	li $v0, 4
+   	la $a0, result
+   	syscall
+   	
+   	lw $t6, stack($zero) #retrieve first stack element
+   	#Print Result
+   	li $v0, 1
+   	addi $a0, $t6, 0
+   	syscall
+   	
+  
+   	
+   	 	
+   	 	 	
+   	 	 	 	
+   	 	 	 	 	
+   	 	 	 	 	 	
+   	 	 	 	 	 	 	
+   	 	 	 	 	 	 	 	
+   	 	 	 	 	 	 	 	 	 	
    push:
    	beq $s1, $s0, error_overflow
    	sw $t2 , stack($t7)#p[i] = result
@@ -104,8 +165,9 @@
    	beq $t1, 45, c2_body
    	beq $t1, 42, c3_body
    	beq $t1, 47, c4_body
-   	
-   	addi $v0, $t5, $zero
+   
+   exit:		
+   	addi $v0, $t5, 0
    	
    	jr $ra			
    c1_body:		
