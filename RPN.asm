@@ -13,75 +13,60 @@
 	#static int i=0
 	addi $s1, $zero, 0
 
-	#Print prompt
+  	#Print prompt
 	li $v0, 4
 	la $a0, prompt
-	syscall
-	
-	#Get the users input
-	li $v0, 5
-	syscall
-	
-	#Store input in $t0
-	move $t0, $v0
-	
-	#Display input
-	li $v0, 1
-	move $a0, $t0
 	syscall
 	
 	
    do_while:
    	# Get next char
-   	lb $t1, ($t0) #load a character (byte) in $t1 $t1 = ch
+   	jal charGetter
    	
-   	bne $t1, 32 , notSpace
+   	bne $t0, 32 , notSpace
    	j do_while
    	
    notSpace:
    	addi $t2, $zero ,0 # number($t2) =0
    	
    while:
-   	blt $t1, 48, exitWhile #Conditions
-   	bgt $t1, 57, exitWhile
+   	blt $t0, 48, exitWhile #Conditions
+   	bgt $t0, 57, exitWhile
    	
    	
    	mul $t2, $t2, 10 # number = 10*number + (ch-48)
-   	sub $t1, $t1, -48
-   	add $t2, $t2, $t1
+   	sub $t0, $t0, -48
+   	add $t2, $t2, $t0
    	
-    nextChar:
-   	# Get next char
-   	lb $t1, ($t0) #load a character (byte) in $t1 $t1 = ch
-   	bne $t1, 32 , notSpace
-   	addi $t0, $t0, 1 # input ++ so it points to the next character
-   	
-   	j while
-   	
+  	jal charGetter
+  	j while
    exitWhile:
    	# if  ((ch == '+') || (ch == '-') ||(ch == '*')||(ch == '/')) 
-   	beq $t1, 43, if_body
-   	beq $t1, 43, if_body
-   	beq $t1, 43, if_body
-   	beq $t1, 43, if_body
+   	beq $t0, 43, if_body
+   	beq $t0, 45, if_body
+   	beq $t0, 42, if_body
+   	beq $t0, 47, if_body
    	b else_if #go to else_if
    	
    if_body:
-   	b pop #call pop() function 
+   	jal pop #call pop() function 
    	move $t4, $v0 # move the return value stored in $v0 to $t4=x2
-   	b pop #pop()
+   	jal pop #pop()
    	move $t3, $v0 # move the return value stored in $v0 to $t3=x1
-   	b calc # calc()
+   	jal calc # calc()
    	move $t2, $v0
-   	b push
+   	jal push
    	
    	j do_while
    	
    else_if:
    	#(ch != '=')
-   	bne $t1, 61, push
-   	
-   	beq $t1, 61, exit_doWhile
+   	bne $t0, 61, push_method_accessor
+   	b continue_without_pushing
+   push_method_accessor:
+   	jal push
+   continue_without_pushing:
+   	beq $t0, 61, exit_doWhile
    	j do_while
    	
 
@@ -134,12 +119,16 @@
    	addi $a0, $t6, 0
    	syscall
    	
-  
-   	
-   	 	
-   	 	 	
-   	 	 	 	
-   	 	 	 	 	
+
+    charGetter:
+	#Get the users input(ch)
+	li $v0, 12
+	syscall
+	
+	#Store input in $t0
+	move $t0, $v0
+	
+   	jr $ra	 	 	 	 	
    	 	 	 	 	 	
    	 	 	 	 	 	 	
    	 	 	 	 	 	 	 	
@@ -150,6 +139,7 @@
    		addi $t7, $t7, 4  #go to space for next int
    	addi $s1, $s1, 1 # i++
    	
+ 
    	jr $ra
    pop:
    	beq $s1, $zero, error_underflow
@@ -161,10 +151,10 @@
    calc:
    	addi $t5, $zero ,0
    	#Switch - cases :
-   	beq $t1 ,43, c1_body
-   	beq $t1, 45, c2_body
-   	beq $t1, 42, c3_body
-   	beq $t1, 47, c4_body
+   	beq $t0 ,43, c1_body
+   	beq $t0, 45, c2_body
+   	beq $t0, 42, c3_body
+   	beq $t0, 47, c4_body
    
    exit:		
    	addi $v0, $t5, 0
@@ -190,6 +180,7 @@
 	beq $t4 , $zero, error_divideByZero		
    	div $t5, $t3, $t4
    	j exit
+
    	
    error_overflow:
    	#Print error
