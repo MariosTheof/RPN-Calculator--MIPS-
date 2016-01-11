@@ -1,5 +1,5 @@
 .data
-	stack: .space 80 #array will hold 20 integers
+	stack: .space 84 #array will hold 20 integers
 	prompt: .asciiz "Postfix (input) : "
 	error: .asciiz "Too many tokens"
 	error2: .asciiz "Invalid postfix"
@@ -35,17 +35,17 @@
    	
    	
    	mul $t2, $t2, 10 # number = 10*number + (ch-48)
-   	sub $t0, $t0, -48
+   	sub $t0, $t0, 48
    	add $t2, $t2, $t0
    	
   	jal charGetter
   	j while
    exitWhile:
-   	# if  ((ch == '+') || (ch == '-') ||(ch == '*')||(ch == '/')) 
-   	beq $t0, 43, if_body
-   	beq $t0, 45, if_body
-   	beq $t0, 42, if_body
-   	beq $t0, 47, if_body
+   	
+   	beq $t0, 43, if_body # if  ((ch == '+') 
+   	beq $t0, 45, if_body # || (ch == '-')
+   	beq $t0, 42, if_body # ||(ch == '*')
+   	beq $t0, 47, if_body # ||(ch == '/')) 
    	b else_if #go to else_if
    	
    if_body:
@@ -90,7 +90,7 @@
    
    printStackLoop:
    	bgt $s2, 19, exitProgram
-   	
+   		
    	addi $s2, $s2, 1
    	
    	li $v0, 4
@@ -119,7 +119,7 @@
    	addi $a0, $t6, 0
    	syscall
    	
-
+	b printStackLoop
     charGetter:
 	#Get the users input(ch)
 	li $v0, 12
@@ -131,7 +131,7 @@
    	jr $ra	 	 	 	 	
    	 	 	 	 	 	
    	 	 	 	 	 	 	
-   	 	 	 	 	 	 	 	
+   	 	 	 	 	 	 	
    	 	 	 	 	 	 	 	 	 	
    push:
    	beq $s1, $s0, error_overflow
@@ -142,9 +142,11 @@
  
    	jr $ra
    pop:
+   	addi $t7, $t7, -4
+   	
    	beq $s1, $zero, error_underflow
    	lw $v0, stack($t7)
-   		addi $t7, $t7, -4
+   		
    	addi $s1, $s1, -1 # i--
    
    	jr $ra
